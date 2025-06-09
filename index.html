@@ -65,6 +65,7 @@
 
     <script>
         const form = document.getElementById('contactForm');
+        const fileInput = document.getElementById('imageUpload'); // Get reference to the file input
         const formStatus = document.getElementById('formStatus');
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxnSE1kxgeeaPKdnfnszKe904nk1Gcm3ZSCm8RyU1uUM9vREGZ__P7XttJeEfSnzx0ZlA/exec'; 
 
@@ -75,7 +76,22 @@
             formStatus.classList.remove('form-success', 'form-error'); 
             formStatus.textContent = '';
 
-            const formData = new FormData(form); 
+            const formData = new FormData(); 
+
+            formData.append('Name', document.getElementById('Name').value);
+            formData.append('Email', document.getElementById('Email').value);
+            formData.append('Message', document.getElementById('Message').value);
+
+            if (fileInput.files.length > 0) {
+                console.log('Files detected in input:', fileInput.files.length);
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const file = fileInput.files[i];
+                    console.log(`Appending file ${i}: ${file.name}, type: ${file.type}, size: ${file.size}`);
+                    formData.append('imageUpload[]', file, file.name); 
+                }
+            } else {
+                console.log('No files selected in the input.');
+            }
 
             try {
                 const response = await fetch(WEB_APP_URL, {
