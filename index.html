@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fresh Start Form with File Upload</title>
+    <title>Lecturer Speech Submission</title>
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Styles for success/error messages and loading spinner */
+        /* Base styles from previous version */
         .form-success {
             background-color: #d4edda;
             color: #155724;
@@ -39,35 +39,71 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Styles for Autocomplete Suggestions */
+        .autocomplete-container {
+            position: relative;
+        }
+        .autocomplete-suggestions {
+            position: absolute;
+            border: 1px solid #ccc;
+            border-top: none;
+            z-index: 99; /* Ensure it appears above other elements */
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #fff;
+            width: 100%;
+            border-radius: 0 0 0.375rem 0.375rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .autocomplete-suggestion-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .autocomplete-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-suggestion-item:hover, .autocomplete-suggestion-item.active {
+            background-color: #f0f4f8; /* Tailwind's gray-100/200 like */
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Contact Us & Upload Files (Fresh Start)</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Lecturer Speech Submission</h2>
         
-        <!-- No enctype needed as we're sending JSON -->
         <form id="contactForm" class="space-y-4"> 
             <div>
-                <label for="Name" class="block text-sm font-medium text-gray-700">Name</label>
+                <label for="Name" class="block text-sm font-medium text-gray-700">Lecturer Name</label>
                 <input type="text" id="Name" name="Name" required
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             
             <div>
-                <label for="Email" class="block text-sm font-medium text-gray-700">Email</label>
+                <label for="Email" class="block text-sm font-medium text-gray-700">Lecturer Email</label>
                 <input type="email" id="Email" name="Email" required
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
-            
+
+            <!-- New Theme Search Field with Autocomplete -->
+            <div class="autocomplete-container">
+                <label for="Theme" class="block text-sm font-medium text-gray-700">Speech Theme</label>
+                <input type="text" id="Theme" name="Theme" required autocomplete="off"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <div id="themeSuggestions" class="autocomplete-suggestions hidden">
+                    <!-- Suggestions will be populated here by JavaScript -->
+                </div>
+            </div>
+
             <div>
-                <label for="Message" class="block text-sm font-medium text-gray-700">Message</label>
-                <textarea id="Message" name="Message" rows="4" required
+                <label for="Message" class="block text-sm font-medium text-gray-700">Additional Notes</label>
+                <textarea id="Message" name="Message" rows="4"
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
             </div>
 
             <div>
-                <label for="imageUpload" class="block text-sm font-medium text-gray-700">Upload Files</label>
-                <!-- name attribute is still useful for FormData but not strictly required for JSON payload -->
+                <label for="imageUpload" class="block text-sm font-medium text-gray-700">Upload Supporting Files (Optional)</label>
                 <input type="file" id="imageUpload" name="imageUpload" multiple 
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 <p class="mt-1 text-sm text-gray-500">You can upload any file type (multiple files allowed).</p>
@@ -89,10 +125,137 @@
         const fileListPreview = document.getElementById('fileListPreview');
         const formStatus = document.getElementById('formStatus');
         const submitButton = document.getElementById('submitButton');
-        // YOU MUST REPLACE THIS PLACEHOLDER WITH YOUR NEW WEB APP URL AFTER DEPLOYMENT
+        const themeInput = document.getElementById('Theme');
+        const themeSuggestionsDiv = document.getElementById('themeSuggestions');
+
+        // IMPORTANT: Replace this with your NEW Web App URL after Apps Script deployment.
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzKmf-DzOkCx4THBWvsBGlb5ePfBKVT_fuetGL4wiVs-XuokXiwZsgofWtNUmNlm7U5/exec'; 
 
-        // Update file list preview when files are selected
+        let allThemes = []; // Stores the full list of themes fetched from Apps Script
+        let activeSuggestionIndex = -1; // For keyboard navigation in suggestions
+
+        // --- Fetch Themes on Page Load ---
+        async function fetchThemes() {
+            try {
+                // For a GET request, the Web App URL itself is enough. Apps Script handles doGet/doPost internally.
+                const response = await fetch(WEB_APP_URL + '?action=getThemes'); // Optional query param for clarity
+                
+                // Apps Script doGet returns JSON with Content-Type: application/json
+                // So, no 'no-cors' mode here if you want to read the response.
+                // However, due to browser security (CORS), direct fetch from GitHub Pages to Apps Script
+                // for GET requests still needs careful handling. 
+                // A 'no-cors' GET doesn't let you read the response body.
+                // So, we'll try to fetch themes directly. If it fails due to CORS,
+                // the alternative is to include themes directly in HTML or use a proxy.
+                // For now, let's assume direct fetch works (it often does for simple GETs to Apps Script).
+                
+                // NOTE: If you encounter CORS errors for the GET request, you might need to manually
+                // enable CORS for doGet in Apps Script (which isn't straightforward) or serve themes
+                // differently. For simple GETs, it usually just works as a basic GET.
+                
+                if (response.ok) { // Check if the response status is 2xx
+                    allThemes = await response.json();
+                    console.log('Themes fetched:', allThemes);
+                } else {
+                    console.error('Failed to fetch themes:', response.status, response.statusText);
+                    formStatus.innerHTML = `Error fetching themes. Status: ${response.status}`;
+                    formStatus.classList.remove('hidden');
+                    formStatus.classList.add('form-error');
+                }
+            } catch (error) {
+                console.error('Network error fetching themes:', error);
+                formStatus.innerHTML = `Network error fetching themes.`;
+                formStatus.classList.remove('hidden');
+                formStatus.classList.add('form-error');
+            }
+        }
+
+        // Fetch themes when the page loads
+        document.addEventListener('DOMContentLoaded', fetchThemes);
+
+
+        // --- Autocomplete Logic ---
+        function showSuggestions(filterText) {
+            themeSuggestionsDiv.innerHTML = ''; // Clear previous suggestions
+            themeSuggestionsDiv.classList.add('hidden'); // Hide by default
+
+            if (filterText.length < 2) { // Only show suggestions after 2 characters
+                activeSuggestionIndex = -1;
+                return;
+            }
+
+            const filteredThemes = allThemes.filter(theme =>
+                theme.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filteredThemes.length === 0) {
+                activeSuggestionIndex = -1;
+                return;
+            }
+
+            themeSuggestionsDiv.classList.remove('hidden');
+            filteredThemes.forEach((theme, index) => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.classList.add('autocomplete-suggestion-item', 'px-3', 'py-2');
+                suggestionItem.textContent = theme;
+                
+                suggestionItem.addEventListener('click', () => {
+                    themeInput.value = theme; // Set selected theme to input field
+                    themeSuggestionsDiv.classList.add('hidden'); // Hide suggestions
+                    activeSuggestionIndex = -1;
+                });
+                themeSuggestionsDiv.appendChild(suggestionItem);
+            });
+        }
+
+        themeInput.addEventListener('input', () => {
+            showSuggestions(themeInput.value);
+        });
+
+        // Hide suggestions when clicking outside the input/suggestions
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.autocomplete-container')) {
+                themeSuggestionsDiv.classList.add('hidden');
+                activeSuggestionIndex = -1;
+            }
+        });
+
+        // Keyboard navigation for suggestions
+        themeInput.addEventListener('keydown', (e) => {
+            const items = themeSuggestionsDiv.querySelectorAll('.autocomplete-suggestion-item');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); // Prevent cursor movement
+                activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+                highlightSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault(); // Prevent cursor movement
+                activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+                highlightSuggestion(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                if (activeSuggestionIndex > -1) {
+                    items[activeSuggestionIndex].click(); // Simulate click on highlighted item
+                }
+            } else if (e.key === 'Escape') {
+                themeSuggestionsDiv.classList.add('hidden');
+                activeSuggestionIndex = -1;
+            }
+        });
+
+        function highlightSuggestion(items) {
+            items.forEach((item, index) => {
+                item.classList.remove('active');
+                if (index === activeSuggestionIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); // Scroll to highlighted item
+                }
+            });
+        }
+
+
+        // --- File List Preview (remains the same) ---
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 const fileNames = Array.from(fileInput.files).map(file => file.name);
@@ -102,6 +265,7 @@
             }
         });
 
+        // --- Form Submission Logic (updated to include Theme) ---
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
@@ -111,10 +275,11 @@
             formStatus.classList.remove('hidden');
             submitButton.disabled = true; 
 
-            // Collect text form data
+            // Collect text form data, including the new 'Theme' field
             const formData = {
                 Name: document.getElementById('Name').value,
                 Email: document.getElementById('Email').value,
+                Theme: document.getElementById('Theme').value, // Add the selected/typed theme
                 Message: document.getElementById('Message').value,
                 uploadedFiles: [] // Array to hold Base64 encoded file objects
             };
@@ -125,11 +290,10 @@
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onload = (e) => {
-                            // Extract only the Base64 data part (after 'data:mime/type;base64,')
                             const base64Data = e.target.result.split(',')[1]; 
                             formData.uploadedFiles.push({
                                 fileName: file.name,
-                                mimeType: file.type || 'application/octet-stream', // Fallback
+                                mimeType: file.type || 'application/octet-stream', 
                                 base64: base64Data
                             });
                             resolve();
@@ -138,17 +302,17 @@
                             console.error("FileReader error:", error);
                             reject(error);
                         };
-                        reader.readAsDataURL(file); // This reads the file content as Base64
+                        reader.readAsDataURL(file); 
                     });
                 });
                 try {
-                    await Promise.all(filePromises); // Wait for all files to be read
+                    await Promise.all(filePromises); 
                 } catch (readError) {
                     console.error("Error reading files:", readError);
                     formStatus.textContent = 'Error reading files. Please try again.';
                     formStatus.classList.add('form-error');
                     submitButton.disabled = false;
-                    return; // Stop submission if file reading fails
+                    return; 
                 }
             }
 
@@ -156,18 +320,17 @@
                 // Send the collected data (including Base64 files) as a JSON string
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Still needed for Apps Script Web Apps
+                    mode: 'no-cors', 
                     headers: {
-                        'Content-Type': 'application/json', // Explicitly declare JSON content
+                        'Content-Type': 'application/json', 
                     },
-                    body: JSON.stringify(formData), // Convert JS object to JSON string
+                    body: JSON.stringify(formData), 
                 });
 
-                // Due to 'no-cors', we can't inspect response. We assume success here.
                 formStatus.textContent = 'Form submitted successfully! Please check your Google Sheet and Google Drive.';
                 formStatus.classList.add('form-success');
                 form.reset();
-                fileListPreview.textContent = ''; // Clear file preview
+                fileListPreview.textContent = ''; 
                 submitButton.disabled = false; 
 
             } catch (error) {
