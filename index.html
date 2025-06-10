@@ -86,13 +86,20 @@
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
 
-            <!-- New Theme Search Field with Autocomplete -->
             <div class="autocomplete-container">
-                <label for="Theme" class="block text-sm font-medium text-gray-700">Theme (Outline number or name)</label>
+                <label for="Theme" class="block text-sm font-medium text-gray-700">Theme (Type theme name or number - eg, #4 )</label>
                 <input type="text" id="Theme" name="Theme" required autocomplete="off"
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:focus:border-indigo-500 sm:text-sm">
                 <div id="themeSuggestions" class="autocomplete-suggestions hidden">
-                    <!-- Suggestions will be populated here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- NEW: Song Search Field with Autocomplete -->
+            <div class="autocomplete-container">
+                <label for="Song" class="block text-sm font-medium text-gray-700">Song</label>
+                <input type="text" id="Song" name="Song" required autocomplete="off"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:focus:border-indigo-500 sm:text-sm">
+                <div id="songSuggestions" class="autocomplete-suggestions hidden">
                 </div>
             </div>
 
@@ -127,56 +134,81 @@
         const submitButton = document.getElementById('submitButton');
         const themeInput = document.getElementById('Theme');
         const themeSuggestionsDiv = document.getElementById('themeSuggestions');
-        const nameInput = document.getElementById('Name'); // Get the name input field
+        const nameInput = document.getElementById('Name'); 
+        // NEW: Song input and suggestions
+        const songInput = document.getElementById('Song');
+        const songSuggestionsDiv = document.getElementById('songSuggestions');
 
         // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyX9i-x8knYgfeQ-zuuQvaURCh7xQvUeDud54TGFLy-PxpUuNZXBbCUBnSyq-e-kuVS/exec'; 
 
         let allThemes = []; 
-        let activeSuggestionIndex = -1; 
+        let activeThemeSuggestionIndex = -1; // Renamed for clarity
+        let allSongs = []; // NEW: Array to hold song titles
+        let activeSongSuggestionIndex = -1; // NEW: For song keyboard navigation
 
-        // JSONP Callback Function (must be global)
+        // JSONP Callback Function for Themes
         window.handleThemesResponse = function(themes) {
             console.log('Themes received via JSONP:', themes);
             if (themes && !themes.error) {
                 allThemes = themes;
             } else {
                 console.error('Error fetching themes via JSONP:', themes.error || 'Unknown error');
-                formStatus.innerHTML = `Error fetching themes.`;
-                formStatus.classList.remove('hidden');
-                formStatus.classList.add('form-error');
+                // You might want a specific error message for themes here if desired
+            }
+        };
+
+        // NEW: JSONP Callback Function for Songs
+        window.handleSongsResponse = function(songs) {
+            console.log('Songs received via JSONP:', songs);
+            if (songs && !songs.error) {
+                allSongs = songs;
+            } else {
+                console.error('Error fetching songs via JSONP:', songs.error || 'Unknown error');
+                // You might want a specific error message for songs here if desired
             }
         };
 
         // Function to fetch themes using JSONP
         function fetchThemesJsonp() {
             const script = document.createElement('script');
-            // Append a timestamp to prevent caching, and the callback parameter
-            script.src = `${WEB_APP_URL}?callback=handleThemesResponse&_=${new Date().getTime()}`;
+            script.src = `${WEB_APP_URL}?callback=handleThemesResponse&targetSheet=Themes&_=${new Date().getTime()}`;
             document.head.appendChild(script);
-            // Remove the script element after it loads to keep the DOM clean
             script.onload = () => script.remove();
             script.onerror = () => {
                 console.error('Failed to load themes script via JSONP. Check URL or network.');
-                formStatus.innerHTML = `Network error fetching themes.`;
+                formStatus.innerHTML = `Network error fetching themes.`; // This uses the main status div
                 formStatus.classList.remove('hidden');
                 formStatus.classList.add('form-error');
             };
         }
 
-        // Fetch themes when the page loads using JSONP
-        document.addEventListener('DOMContentLoaded', fetchThemesJsonp);
+        // NEW: Function to fetch songs using JSONP
+        function fetchSongsJsonp() {
+            const script = document.createElement('script');
+            script.src = `${WEB_APP_URL}?callback=handleSongsResponse&targetSheet=Songs&_=${new Date().getTime()}`;
+            document.head.appendChild(script);
+            script.onload = () => script.remove();
+            script.onerror = () => {
+                console.error('Failed to load songs script via JSONP. Check URL or network.');
+                // Consider a separate status div for songs if errors need to be distinct
+            };
+        }
+
+        // Fetch themes and songs when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchThemesJsonp();
+            fetchSongsJsonp(); // Fetch songs too
+        });
 
 
-        // Autocomplete Logic
-        function showSuggestions(filterText) {
+        // Autocomplete Logic for Themes
+        function showThemeSuggestions(filterText) { // Renamed function
             themeSuggestionsDiv.innerHTML = '';
             themeSuggestionsDiv.classList.add('hidden');
 
-            // MODIFIED: Allow single digits to trigger suggestions
-            // If filterText is empty, or if it's a single character AND NOT a digit, hide suggestions.
             if (filterText.length === 0 || (filterText.length === 1 && !/^\d$/.test(filterText))) { 
-                activeSuggestionIndex = -1;
+                activeThemeSuggestionIndex = -1;
                 return;
             }
 
@@ -185,7 +217,7 @@
             );
 
             if (filteredThemes.length === 0) {
-                activeSuggestionIndex = -1;
+                activeThemeSuggestionIndex = -1;
                 return;
             }
 
@@ -198,52 +230,118 @@
                 suggestionItem.addEventListener('click', () => {
                     themeInput.value = theme; 
                     themeSuggestionsDiv.classList.add('hidden'); 
-                    activeSuggestionIndex = -1;
+                    activeThemeSuggestionIndex = -1;
                 });
                 themeSuggestionsDiv.appendChild(suggestionItem);
             });
         }
 
         themeInput.addEventListener('input', () => {
-            showSuggestions(themeInput.value);
+            showThemeSuggestions(themeInput.value); // Call renamed function
         });
 
-        // Hide suggestions when clicking outside the input/suggestions
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('.autocomplete-container')) {
+            // Check if click is outside theme autocomplete container
+            if (!event.target.closest('#themeSuggestions') && event.target !== themeInput) {
                 themeSuggestionsDiv.classList.add('hidden');
-                activeSuggestionIndex = -1;
+                activeThemeSuggestionIndex = -1;
+            }
+            // Check if click is outside song autocomplete container
+            if (!event.target.closest('#songSuggestions') && event.target !== songInput) {
+                songSuggestionsDiv.classList.add('hidden');
+                activeSongSuggestionIndex = -1;
             }
         });
 
-        // Keyboard navigation for suggestions
         themeInput.addEventListener('keydown', (e) => {
             const items = themeSuggestionsDiv.querySelectorAll('.autocomplete-suggestion-item');
             if (items.length === 0) return;
 
             if (e.key === 'ArrowDown') {
                 e.preventDefault(); 
-                activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
-                highlightSuggestion(items);
+                activeThemeSuggestionIndex = (activeThemeSuggestionIndex + 1) % items.length;
+                highlightSuggestion(items, activeThemeSuggestionIndex); 
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
-                highlightSuggestion(items);
+                activeThemeSuggestionIndex = (activeThemeSuggestionIndex - 1 + items.length) % items.length;
+                highlightSuggestion(items, activeThemeSuggestionIndex);
             } else if (e.key === 'Enter') {
                 e.preventDefault(); 
-                if (activeSuggestionIndex > -1) {
-                    items[activeSuggestionIndex].click(); 
+                if (activeThemeSuggestionIndex > -1) {
+                    items[activeThemeSuggestionIndex].click(); 
                 }
             } else if (e.key === 'Escape') {
                 themeSuggestionsDiv.classList.add('hidden');
-                activeSuggestionIndex = -1;
+                activeThemeSuggestionIndex = -1;
             }
         });
 
-        function highlightSuggestion(items) {
+        // NEW: Autocomplete Logic for Songs (Duplicated and adapted from Theme)
+        function showSongSuggestions(filterText) {
+            songSuggestionsDiv.innerHTML = '';
+            songSuggestionsDiv.classList.add('hidden');
+
+            if (filterText.length === 0) { // Can adjust this threshold for songs if needed
+                activeSongSuggestionIndex = -1;
+                return;
+            }
+
+            const filteredSongs = allSongs.filter(song =>
+                song.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filteredSongs.length === 0) {
+                activeSongSuggestionIndex = -1;
+                return;
+            }
+
+            songSuggestionsDiv.classList.remove('hidden');
+            filteredSongs.forEach((song, index) => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.classList.add('autocomplete-suggestion-item', 'px-3', 'py-2');
+                suggestionItem.textContent = song;
+                
+                suggestionItem.addEventListener('click', () => {
+                    songInput.value = song; 
+                    songSuggestionsDiv.classList.add('hidden'); 
+                    activeSongSuggestionIndex = -1;
+                });
+                songSuggestionsDiv.appendChild(suggestionItem);
+            });
+        }
+
+        songInput.addEventListener('input', () => {
+            showSongSuggestions(songInput.value);
+        });
+
+        songInput.addEventListener('keydown', (e) => {
+            const items = songSuggestionsDiv.querySelectorAll('.autocomplete-suggestion-item');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); 
+                activeSongSuggestionIndex = (activeSongSuggestionIndex + 1) % items.length;
+                highlightSuggestion(items, activeSongSuggestionIndex); 
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSongSuggestionIndex = (activeSongSuggestionIndex - 1 + items.length) % items.length;
+                highlightSuggestion(items, activeSongSuggestionIndex);
+            } else if (e.key === 'Enter') {
+                e.preventDefault(); 
+                if (activeSongSuggestionIndex > -1) {
+                    items[activeSongSuggestionIndex].click(); 
+                }
+            } else if (e.key === 'Escape') {
+                songSuggestionsDiv.classList.add('hidden');
+                activeSongSuggestionIndex = -1;
+            }
+        });
+
+        // Universal highlightSuggestion function (now accepts items and index)
+        function highlightSuggestion(items, indexToHighlight) {
             items.forEach((item, index) => {
                 item.classList.remove('active');
-                if (index === activeSuggestionIndex) {
+                if (index === indexToHighlight) {
                     item.classList.add('active');
                     item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); 
                 }
@@ -269,20 +367,18 @@
             formStatus.classList.remove('hidden');
             submitButton.disabled = true; 
 
-            // Extract first name from the Lecturer Name
             const lecturerFullName = nameInput.value.trim();
             const firstName = lecturerFullName.split(' ')[0] || 'there'; 
 
-            // Collect text form data, including the new 'Theme' field
             const formData = {
                 Name: lecturerFullName, 
                 Email: document.getElementById('Email').value,
                 Theme: document.getElementById('Theme').value, 
+                Song: document.getElementById('Song').value, // NEW: Add Song field
                 Message: document.getElementById('Message').value,
                 uploadedFiles: [] 
             };
 
-            // Read files as Base64 asynchronously
             if (fileInput.files.length > 0) {
                 const filePromises = Array.from(fileInput.files).map(file => {
                     return new Promise((resolve, reject) => {
@@ -315,7 +411,6 @@
             }
 
             try {
-                // Send the collected data (including Base64 files) as a JSON string
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -325,10 +420,8 @@
                     body: JSON.stringify(formData), 
                 });
 
-                // --- UPDATED SUBMISSION MESSAGE ---
                 formStatus.textContent = `Thanks ${firstName}. We look forward to seeing you soon!`;
                 formStatus.classList.add('form-success');
-                // --- END UPDATED SUBMISSION MESSAGE ---
 
                 form.reset();
                 fileListPreview.textContent = ''; 
