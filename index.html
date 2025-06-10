@@ -71,7 +71,7 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Tooting Bec Public Talk <br>Information</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Lecturer Speech Submission</h2>
         
         <form id="contactForm" class="space-y-4"> 
             <div>
@@ -81,32 +81,32 @@
             </div>
             
             <div>
-                <label for="Email" class="block text-sm font-medium text-gray-700">Lecturer Email</label>
+                <label for="Email" class="block text-sm font-medium text-gray-700">Email</label>
                 <input type="email" id="Email" name="Email" required
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
 
             <!-- New Theme Search Field with Autocomplete -->
             <div class="autocomplete-container">
-                <label for="Theme" class="block text-sm font-medium text-gray-700">Speech Theme</label>
+                <label for="Theme" class="block text-sm font-medium text-gray-700">Theme (Type theme name or number - eg, #4 )</label>
                 <input type="text" id="Theme" name="Theme" required autocomplete="off"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:focus:border-indigo-500 sm:text-sm">
                 <div id="themeSuggestions" class="autocomplete-suggestions hidden">
                     <!-- Suggestions will be populated here by JavaScript -->
                 </div>
             </div>
 
             <div>
-                <label for="Message" class="block text-sm font-medium text-gray-700">Additional Notes</label>
+                <label for="Message" class="block text-sm font-medium text-gray-700">Notes for the AV team</label>
                 <textarea id="Message" name="Message" rows="4"
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
             </div>
 
             <div>
-                <label for="imageUpload" class="block text-sm font-medium text-gray-700">Upload Supporting Files (Optional)</label>
+                <label for="imageUpload" class="block text-sm font-medium text-gray-700">Upload Media</label>
                 <input type="file" id="imageUpload" name="imageUpload" multiple 
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                <p class="mt-1 text-sm text-gray-500">You can upload any file type (multiple files allowed).</p>
+                <p class="mt-1 text-sm text-gray-500">You can drag and drop file(s) into the box above.</p>
                 <div id="fileListPreview" class="mt-2 text-sm text-gray-600"></div>
             </div>
             
@@ -127,59 +127,53 @@
         const submitButton = document.getElementById('submitButton');
         const themeInput = document.getElementById('Theme');
         const themeSuggestionsDiv = document.getElementById('themeSuggestions');
+        const nameInput = document.getElementById('Name'); // Get the name input field
 
-        // IMPORTANT: Replace this with your NEW Web App URL after Apps Script deployment.
+        // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyX9i-x8knYgfeQ-zuuQvaURCh7xQvUeDud54TGFLy-PxpUuNZXBbCUBnSyq-e-kuVS/exec'; 
 
-        let allThemes = []; // Stores the full list of themes fetched from Apps Script
-        let activeSuggestionIndex = -1; // For keyboard navigation in suggestions
+        let allThemes = []; 
+        let activeSuggestionIndex = -1; 
 
-        // --- Fetch Themes on Page Load ---
-        async function fetchThemes() {
-            try {
-                // For a GET request, the Web App URL itself is enough. Apps Script handles doGet/doPost internally.
-                const response = await fetch(WEB_APP_URL + '?action=getThemes'); // Optional query param for clarity
-                
-                // Apps Script doGet returns JSON with Content-Type: application/json
-                // So, no 'no-cors' mode here if you want to read the response.
-                // However, due to browser security (CORS), direct fetch from GitHub Pages to Apps Script
-                // for GET requests still needs careful handling. 
-                // A 'no-cors' GET doesn't let you read the response body.
-                // So, we'll try to fetch themes directly. If it fails due to CORS,
-                // the alternative is to include themes directly in HTML or use a proxy.
-                // For now, let's assume direct fetch works (it often does for simple GETs to Apps Script).
-                
-                // NOTE: If you encounter CORS errors for the GET request, you might need to manually
-                // enable CORS for doGet in Apps Script (which isn't straightforward) or serve themes
-                // differently. For simple GETs, it usually just works as a basic GET.
-                
-                if (response.ok) { // Check if the response status is 2xx
-                    allThemes = await response.json();
-                    console.log('Themes fetched:', allThemes);
-                } else {
-                    console.error('Failed to fetch themes:', response.status, response.statusText);
-                    formStatus.innerHTML = `Error fetching themes. Status: ${response.status}`;
-                    formStatus.classList.remove('hidden');
-                    formStatus.classList.add('form-error');
-                }
-            } catch (error) {
-                console.error('Network error fetching themes:', error);
-                formStatus.innerHTML = `Network error fetching themes.`;
+        // JSONP Callback Function (must be global)
+        window.handleThemesResponse = function(themes) {
+            console.log('Themes received via JSONP:', themes);
+            if (themes && !themes.error) {
+                allThemes = themes;
+            } else {
+                console.error('Error fetching themes via JSONP:', themes.error || 'Unknown error');
+                formStatus.innerHTML = `Error fetching themes.`;
                 formStatus.classList.remove('hidden');
                 formStatus.classList.add('form-error');
             }
+        };
+
+        // Function to fetch themes using JSONP
+        function fetchThemesJsonp() {
+            const script = document.createElement('script');
+            // Append a timestamp to prevent caching, and the callback parameter
+            script.src = `${WEB_APP_URL}?callback=handleThemesResponse&_=${new Date().getTime()}`;
+            document.head.appendChild(script);
+            // Remove the script element after it loads to keep the DOM clean
+            script.onload = () => script.remove();
+            script.onerror = () => {
+                console.error('Failed to load themes script via JSONP. Check URL or network.');
+                formStatus.innerHTML = `Network error fetching themes.`;
+                formStatus.classList.remove('hidden');
+                formStatus.classList.add('form-error');
+            };
         }
 
-        // Fetch themes when the page loads
-        document.addEventListener('DOMContentLoaded', fetchThemes);
+        // Fetch themes when the page loads using JSONP
+        document.addEventListener('DOMContentLoaded', fetchThemesJsonp);
 
 
-        // --- Autocomplete Logic ---
+        // Autocomplete Logic (remains largely the same)
         function showSuggestions(filterText) {
-            themeSuggestionsDiv.innerHTML = ''; // Clear previous suggestions
-            themeSuggestionsDiv.classList.add('hidden'); // Hide by default
+            themeSuggestionsDiv.innerHTML = '';
+            themeSuggestionsDiv.classList.add('hidden');
 
-            if (filterText.length < 2) { // Only show suggestions after 2 characters
+            if (filterText.length < 2) { 
                 activeSuggestionIndex = -1;
                 return;
             }
@@ -200,8 +194,8 @@
                 suggestionItem.textContent = theme;
                 
                 suggestionItem.addEventListener('click', () => {
-                    themeInput.value = theme; // Set selected theme to input field
-                    themeSuggestionsDiv.classList.add('hidden'); // Hide suggestions
+                    themeInput.value = theme; 
+                    themeSuggestionsDiv.classList.add('hidden'); 
                     activeSuggestionIndex = -1;
                 });
                 themeSuggestionsDiv.appendChild(suggestionItem);
@@ -226,17 +220,17 @@
             if (items.length === 0) return;
 
             if (e.key === 'ArrowDown') {
-                e.preventDefault(); // Prevent cursor movement
+                e.preventDefault(); 
                 activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
                 highlightSuggestion(items);
             } else if (e.key === 'ArrowUp') {
-                e.preventDefault(); // Prevent cursor movement
+                e.preventDefault();
                 activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
                 highlightSuggestion(items);
             } else if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent form submission
+                e.preventDefault(); 
                 if (activeSuggestionIndex > -1) {
-                    items[activeSuggestionIndex].click(); // Simulate click on highlighted item
+                    items[activeSuggestionIndex].click(); 
                 }
             } else if (e.key === 'Escape') {
                 themeSuggestionsDiv.classList.add('hidden');
@@ -249,13 +243,12 @@
                 item.classList.remove('active');
                 if (index === activeSuggestionIndex) {
                     item.classList.add('active');
-                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); // Scroll to highlighted item
+                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); 
                 }
             });
         }
 
-
-        // --- File List Preview (remains the same) ---
+        // File List Preview (remains the same)
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 const fileNames = Array.from(fileInput.files).map(file => file.name);
@@ -265,23 +258,26 @@
             }
         });
 
-        // --- Form Submission Logic (updated to include Theme) ---
+        // Form Submission Logic
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            // Reset status and show loading
             formStatus.classList.remove('form-success', 'form-error'); 
             formStatus.innerHTML = '<span class="loading-spinner"></span>Submitting...';
             formStatus.classList.remove('hidden');
             submitButton.disabled = true; 
 
+            // Extract first name from the Lecturer Name
+            const lecturerFullName = nameInput.value.trim();
+            const firstName = lecturerFullName.split(' ')[0] || 'there'; 
+
             // Collect text form data, including the new 'Theme' field
             const formData = {
-                Name: document.getElementById('Name').value,
+                Name: lecturerFullName, 
                 Email: document.getElementById('Email').value,
-                Theme: document.getElementById('Theme').value, // Add the selected/typed theme
+                Theme: document.getElementById('Theme').value, 
                 Message: document.getElementById('Message').value,
-                uploadedFiles: [] // Array to hold Base64 encoded file objects
+                uploadedFiles: [] 
             };
 
             // Read files as Base64 asynchronously
@@ -327,8 +323,11 @@
                     body: JSON.stringify(formData), 
                 });
 
-                formStatus.textContent = 'Form submitted successfully! Please check your Google Sheet and Google Drive.';
+                // --- UPDATED SUBMISSION MESSAGE ---
+                formStatus.textContent = `Thanks ${firstName}. We look forward to seeing you soon!`;
                 formStatus.classList.add('form-success');
+                // --- END UPDATED SUBMISSION MESSAGE ---
+
                 form.reset();
                 fileListPreview.textContent = ''; 
                 submitButton.disabled = false; 
