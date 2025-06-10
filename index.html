@@ -86,13 +86,12 @@
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
 
-            <!-- NEW Talk Date field -->
             <div>
                 <label for="TalkDate" class="block text-sm font-medium text-gray-700">Talk Date</label>
-                <input type="date" id="TalkDate" name="TalkDate" required
+                <input type="date" id="TalkDate" name="TalkDate" required placeholder="Click for calendar"
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <p class="mt-1 text-sm text-gray-500">Use the calendar icon <span class="align-middle">📅</span> for date selection.</p>
             </div>
-            <!-- END NEW Talk Date field -->
 
             <div class="autocomplete-container">
                 <label for="Theme" class="block text-sm font-medium text-gray-700">Outline Name (or number)</label>
@@ -144,7 +143,7 @@
         const nameInput = document.getElementById('Name'); 
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
-        const talkDateInput = document.getElementById('TalkDate'); // Get the new TalkDate input
+        const talkDateInput = document.getElementById('TalkDate'); 
 
         // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyX9i-x8knYgfeQ-zuuQvaURCh7xQvUeDud54TGFLy-PxpUuNZXBbCUBnSyq-e-kuVS/exec'; 
@@ -377,7 +376,7 @@
             const formData = {
                 Name: lecturerFullName, 
                 Email: document.getElementById('Email').value,
-                TalkDate: talkDateInput.value, // Include the TalkDate value
+                TalkDate: talkDateInput.value, 
                 Theme: document.getElementById('Theme').value, 
                 Song: document.getElementById('Song').value, 
                 Message: document.getElementById('Message').value,
