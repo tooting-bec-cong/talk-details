@@ -202,7 +202,7 @@
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
         const talkDateInput = document.getElementById('TalkDate'); 
-        const talkDateHint = document.getElementById('talkDateHint'); // Get the hint text
+        const talkDateHint = document.getElementById('talkDateHint'); 
         const extraField = document.getElementById('extra_field'); // Honeypot field
 
         // Theme Toggle Elements
@@ -217,18 +217,13 @@
         let allSongs = []; 
         let activeSongSuggestionIndex = -1; 
 
-        // Feature detection for input type="date" native picker
+        // Feature detection for input type="date" native picker (Simplified & more reliable)
         function supportsDateInputPicker() {
             const input = document.createElement('input');
             input.setAttribute('type', 'date');
-            // A browser supports the picker if it doesn't revert the type to 'text'
-            // and it handles an invalid date correctly.
-            // Modern browsers will keep type as 'date'.
-            // Some older browsers might keep type as 'date' but not show picker,
-            // so checking valueAsDate is more robust.
-            // If valueAsDate is null for an invalid date, it indicates native parsing.
-            input.value = 'not-a-date'; 
-            return input.type === 'date' && input.valueAsDate === null;
+            // In browsers that support type="date" natively, input.type will remain 'date'.
+            // In browsers that don't, it will fall back to 'text'.
+            return input.type === 'date';
         }
 
         // Theme Management Functions
@@ -259,15 +254,14 @@
             // Apply readonly if native date picker is supported
             if (supportsDateInputPicker()) {
                 talkDateInput.setAttribute('readonly', 'readonly');
-                // You could also refine the hint text here if needed, e.g.,
-                // talkDateHint.textContent = "Click the calendar icon to select a date.";
+                talkDateInput.placeholder = "Select Date"; // Cleaner placeholder
+                talkDateHint.textContent = "Click the calendar icon 📅 to select a date.";
             } else {
-                // If native picker is NOT supported, allow typing and potentially adjust hint
+                // If native picker is NOT supported, allow typing and adjust hint
                 talkDateInput.removeAttribute('readonly');
                 talkDateInput.placeholder = "YYYY-MM-DD"; // Suggest format for manual entry
-                talkDateHint.textContent = "Enter date manually (YYYY-MM-DD) or use calendar if available.";
+                talkDateHint.textContent = "Enter date manually (YYYY-MM-DD).";
             }
-
 
             // Fetch themes and songs
             fetchThemesJsonp();
@@ -529,7 +523,7 @@
                             const base64Data = e.target.result.split(',')[1]; 
                             formData.uploadedFiles.push({
                                 fileName: file.name,
-                                mimeType: file.type || 'application/octet-stream', 
+                                mimeType: file.type || 'application/octet-octets-stream', 
                                 base64: base64Data
                             });
                             resolve();
