@@ -4,11 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk Details</title>
-    <!-- Tailwind CSS CDN for styling -->
+    
+    <!-- Tailwind CSS CDN for styling - THIS MUST COME FIRST -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind CSS Configuration for Dark Mode - THIS MUST COME AFTER THE CDN SCRIPT -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode based on 'dark' class on HTML element
+            theme: {
+                extend: {
+                    // You can extend colors here if needed, but for simple dark mode,
+                    // Tailwind's built-in grayscale and colors usually suffice with dark: variants.
+                }
+            }
+        }
+    </script>
     <style>
-        /* Base styles */
-        /* Updated for better contrast and softer tones */
+        /* Base styles (light mode defaults) */
         .form-success {
             background-color: #ECFDF5; /* green-50 */
             color: #065F46; /* green-800 */
@@ -68,11 +81,47 @@
         .autocomplete-suggestion-item:hover, .autocomplete-suggestion-item.active {
             background-color: #F0FDFA; /* teal-50 */
         }
+
+        /* Dark mode specific styles for messages and autocomplete */
+        html.dark .form-success {
+            background-color: #064E3B; /* green-900 */
+            color: #A7F3D0; /* green-200 */
+            border-color: #10B981; /* green-500 */
+        }
+        html.dark .form-error {
+            background-color: #7F1D1D; /* red-900 */
+            color: #FCA5A5; /* red-300 */
+            border-color: #F87171; /* red-500 */
+        }
+        html.dark .autocomplete-suggestions {
+            background-color: #374151; /* gray-700 */
+            border-color: #4B5563; /* gray-600 */
+            color: #F9FAFB; /* gray-50 */
+        }
+        html.dark .autocomplete-suggestion-item {
+            border-bottom-color: #4B5563; /* gray-600 */
+        }
+        html.dark .autocomplete-suggestion-item:hover, html.dark .autocomplete-suggestion-item.active {
+            background-color: #4B5563; /* gray-600 */
+        }
     </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Tooting Bec Congregation <hr class="my-2 border-t border-gray-300">Talk Details</h2>
+<body class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md transition-colors duration-300">
+        <div class="flex justify-end mb-4">
+            <label for="themeToggle" class="flex items-center cursor-pointer">
+                <div class="relative">
+                    <input type="checkbox" id="themeToggle" class="sr-only peer"> <!-- Added peer class here -->
+                    <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 transform peer-checked:translate-x-6 peer-checked:bg-teal-500"></div>
+                </div>
+                <div class="ml-3 text-gray-700 dark:text-gray-300 font-medium select-none">
+                    Dark Mode
+                </div>
+            </label>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-6 text-center transition-colors duration-300">Tooting Bec Congregation <hr class="my-2 border-t border-gray-300 dark:border-gray-600 transition-colors duration-300">Talk Details</h2>
         
         <form id="contactForm" class="space-y-4"> 
             <!-- Honeypot field for spam prevention -->
@@ -83,56 +132,56 @@
             <!-- End honeypot field -->
 
             <div>
-                <label for="Name" class="block text-sm font-medium text-gray-700">Speaker Name</label>
+                <label for="Name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Speaker Name</label>
                 <input type="text" id="Name" name="Name" required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
             </div>
             
             <div>
-                <label for="Email" class="block text-sm font-medium text-gray-700">Email</label>
+                <label for="Email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Email</label>
                 <input type="email" id="Email" name="Email" required
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
             </div>
 
             <div>
-                <label for="TalkDate" class="block text-sm font-medium text-gray-700">Talk Date</label>
+                <label for="TalkDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Talk Date</label>
                 <input type="date" id="TalkDate" name="TalkDate" required placeholder="Click for calendar"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                <p class="mt-1 text-sm text-gray-600">Use the calendar icon <span class="align-middle">📅</span> for date selection.</p>
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon <span class="align-middle">📅</span> for date selection.</p>
             </div>
 
             <div class="autocomplete-container">
-                <label for="Theme" class="block text-sm font-medium text-gray-700">Outline Name (or number)</label>
+                <label for="Theme" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Outline Name (or number)</label>
                 <input type="text" id="Theme" name="Theme" required autocomplete="off" placeholder="1. How Well Do You Know God?"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:focus:border-teal-500 sm:text-sm">
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
                 <div id="themeSuggestions" class="autocomplete-suggestions hidden">
                 </div>
             </div>
 
             <div class="autocomplete-container">
-                <label for="Song" class="block text-sm font-medium text-gray-700">Song Name (or number)</label>
+                <label for="Song" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Song Name (or number)</label>
                 <input type="text" id="Song" name="Song" required autocomplete="off" placeholder="63. We’re Jehovah’s Witnesses!"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:focus:border-teal-500 sm:text-sm">
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
                 <div id="songSuggestions" class="autocomplete-suggestions hidden">
                 </div>
             </div>
 
             <div>
-                <label for="Message" class="block text-sm font-medium text-gray-700">Notes</label>
+                <label for="Message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Notes</label>
                 <textarea id="Message" name="Message" rows="4" placeholder="Notes for the Audio Visual team. (Optional)"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"></textarea>
+                          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300"></textarea>
             </div>
 
             <div>
-                <label for="imageUpload" class="block text-sm font-medium text-gray-700">Upload Media</label>
+                <label for="imageUpload" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Upload Media</label>
                 <input type="file" id="imageUpload" name="imageUpload" multiple 
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                <p class="mt-1 text-sm text-gray-500">You can drag and drop file(s) into the box above.</p>
-                <div id="fileListPreview" class="mt-2 text-sm text-gray-600"></div>
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">You can drag and drop file(s) into the box above.</p>
+                <div id="fileListPreview" class="mt-2 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300"></div>
             </div>
             
             <button type="submit" id="submitButton"
-                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 rounded-md">
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 rounded-md dark:bg-teal-500 dark:hover:bg-teal-600 dark:focus:ring-teal-400 transition-colors duration-300">
                 Submit
             </button>
             
@@ -152,7 +201,11 @@
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
         const talkDateInput = document.getElementById('TalkDate'); 
-        const extraField = document.getElementById('extra_field'); // Get the honeypot field
+        const extraField = document.getElementById('extra_field'); // Honeypot field
+
+        // Theme Toggle Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement; // Represents the <html> tag
 
         // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyX9i-x8knYgfeQ-zuuQvaURCh7xQvUeDud54TGFLy-PxpUuNZXBbCUBnSyq-e-kuVS/exec'; 
@@ -161,6 +214,47 @@
         let activeThemeSuggestionIndex = -1; 
         let allSongs = []; 
         let activeSongSuggestionIndex = -1; 
+
+        // Theme Management Functions
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark');
+                themeToggle.checked = true;
+            } else {
+                htmlElement.classList.remove('dark');
+                themeToggle.checked = false;
+            }
+            localStorage.setItem('theme', theme); // Save preference
+        }
+
+        // On page load, apply saved theme or default to light
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                // Check system preference if no theme is saved (optional, but good UX)
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    applyTheme('dark');
+                } else {
+                    applyTheme('light'); 
+                }
+            }
+
+            // Fetch themes and songs
+            fetchThemesJsonp();
+            fetchSongsJsonp(); 
+        });
+
+        // Event listener for theme toggle
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                applyTheme('dark');
+            } else {
+                applyTheme('light');
+            }
+        });
+
 
         // JSONP Callback Function for Themes
         window.handleThemesResponse = function(themes) {
@@ -209,12 +303,6 @@
                 formStatus.classList.add('form-error');
             };
         }
-
-        // Fetch themes and songs when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchThemesJsonp();
-            fetchSongsJsonp(); 
-        });
 
         // Autocomplete Logic for Themes
         function showThemeSuggestions(filterText) { 
@@ -380,7 +468,7 @@
             submitButton.disabled = true; 
 
             // Get honeypot field value
-            const honeypotValue = extraField.value; // Use the direct element reference
+            const honeypotValue = extraField.value; 
             // If honeypot is filled, it's likely a bot. Display success to avoid tipping off bots.
             if (honeypotValue) {
                 console.log('Honeypot field filled. Likely bot submission. Not processing.');
