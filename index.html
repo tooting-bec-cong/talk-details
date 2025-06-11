@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Base styles from previous version */
+        /* Base styles */
         /* Updated for better contrast and softer tones */
         .form-success {
             background-color: #ECFDF5; /* green-50 */
@@ -152,6 +152,7 @@
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
         const talkDateInput = document.getElementById('TalkDate'); 
+        const extraField = document.getElementById('extra_field'); // Get the honeypot field
 
         // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyX9i-x8knYgfeQ-zuuQvaURCh7xQvUeDud54TGFLy-PxpUuNZXBbCUBnSyq-e-kuVS/exec'; 
@@ -379,7 +380,7 @@
             submitButton.disabled = true; 
 
             // Get honeypot field value
-            const honeypotValue = document.getElementById('extra_field').value;
+            const honeypotValue = extraField.value; // Use the direct element reference
             // If honeypot is filled, it's likely a bot. Display success to avoid tipping off bots.
             if (honeypotValue) {
                 console.log('Honeypot field filled. Likely bot submission. Not processing.');
