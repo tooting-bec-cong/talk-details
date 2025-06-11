@@ -145,10 +145,9 @@
 
             <div>
                 <label for="TalkDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Talk Date</label>
-                <!-- Removed placeholder to not conflict with native date input behavior -->
-                <input type="date" id="TalkDate" name="TalkDate" required
+                <input type="date" id="TalkDate" name="TalkDate" required placeholder="Click for calendar"
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
-                <p id="talkDateHint" class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon 📅 for date selection.</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon 📅 for date selection.</p>
             </div>
 
             <div class="autocomplete-container">
@@ -202,7 +201,6 @@
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
         const talkDateInput = document.getElementById('TalkDate'); 
-        const talkDateHint = document.getElementById('talkDateHint'); 
         const extraField = document.getElementById('extra_field'); // Honeypot field
 
         // Theme Toggle Elements
@@ -217,15 +215,6 @@
         let allSongs = []; 
         let activeSongSuggestionIndex = -1; 
 
-        // Feature detection for input type="date" native picker (Simplified & more reliable)
-        function supportsDateInputPicker() {
-            const input = document.createElement('input');
-            input.setAttribute('type', 'date');
-            // In browsers that support type="date" natively, input.type will remain 'date'.
-            // In browsers that don't, it will fall back to 'text'.
-            return input.type === 'date';
-        }
-
         // Theme Management Functions
         function applyTheme(theme) {
             if (theme === 'dark') {
@@ -238,7 +227,7 @@
             localStorage.setItem('theme', theme); // Save preference
         }
 
-        // On page load, apply saved theme, set date input behavior, and fetch data
+        // On page load, apply saved theme or default to light
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
@@ -249,18 +238,6 @@
                 } else {
                     applyTheme('light'); 
                 }
-            }
-
-            // Apply readonly if native date picker is supported
-            if (supportsDateInputPicker()) {
-                talkDateInput.setAttribute('readonly', 'readonly');
-                talkDateInput.placeholder = "Select Date"; // Cleaner placeholder
-                talkDateHint.textContent = "Click the calendar icon 📅 to select a date.";
-            } else {
-                // If native picker is NOT supported, allow typing and adjust hint
-                talkDateInput.removeAttribute('readonly');
-                talkDateInput.placeholder = "YYYY-MM-DD"; // Suggest format for manual entry
-                talkDateHint.textContent = "Enter date manually (YYYY-MM-DD).";
             }
 
             // Fetch themes and songs
@@ -523,7 +500,7 @@
                             const base64Data = e.target.result.split(',')[1]; 
                             formData.uploadedFiles.push({
                                 fileName: file.name,
-                                mimeType: file.type || 'application/octet-octets-stream', 
+                                mimeType: file.type || 'application/octet-stream', 
                                 base64: base64Data
                             });
                             resolve();
