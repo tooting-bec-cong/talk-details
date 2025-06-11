@@ -22,7 +22,6 @@
     </script>
     <style>
         /* Base styles (light mode defaults) */
-
         .form-success {
             background-color: #ECFDF5; /* green-50 */
             color: #065F46; /* green-800 */
@@ -113,8 +112,8 @@
             <label for="themeToggle" class="flex items-center cursor-pointer">
                 <div class="relative">
                     <input type="checkbox" id="themeToggle" class="sr-only peer">
-                    <div class="block bg-gray-600 w-14 h-6 rounded-full"></div>
-                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-6 peer-checked:bg-teal-500"></div>
+                    <div class="block bg-gray-600 w-14 h-6 rounded-full"></div> 
+                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 transform peer-checked:translate-x-7 peer-checked:bg-teal-500"></div> 
                 </div>
                 <div class="ml-3 text-gray-700 dark:text-gray-300 font-medium select-none">
                     Dark Mode
@@ -148,7 +147,10 @@
                 <label for="TalkDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Talk Date</label>
                 <input type="date" id="TalkDate" name="TalkDate" required placeholder="Click for calendar"
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon 📅 for date selection.</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
+                    <span class="hidden md:inline">Use the calendar icon 📅 for date selection.</span>
+                    <span class="md:hidden">Tap to see calendar.</span>
+                </p>
             </div>
 
             <div class="autocomplete-container">
