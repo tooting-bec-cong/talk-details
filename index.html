@@ -111,7 +111,7 @@
         <div class="flex justify-end mb-4">
             <label for="themeToggle" class="flex items-center cursor-pointer">
                 <div class="relative">
-                    <input type="checkbox" id="themeToggle" class="sr-only peer"> <!-- Added peer class here -->
+                    <input type="checkbox" id="themeToggle" class="sr-only peer">
                     <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
                     <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 transform peer-checked:translate-x-6 peer-checked:bg-teal-500"></div>
                 </div>
@@ -145,9 +145,10 @@
 
             <div>
                 <label for="TalkDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-300">Talk Date</label>
-                <input type="date" id="TalkDate" name="TalkDate" required placeholder="Click for calendar"
+                <!-- Removed placeholder to not conflict with native date input behavior -->
+                <input type="date" id="TalkDate" name="TalkDate" required
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-teal-500 dark:focus:border-teal-400 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-300">
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon <span class="align-middle">📅</span> for date selection.</p>
+                <p id="talkDateHint" class="mt-1 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Use the calendar icon 📅 for date selection.</p>
             </div>
 
             <div class="autocomplete-container">
@@ -201,6 +202,7 @@
         const songInput = document.getElementById('Song');
         const songSuggestionsDiv = document.getElementById('songSuggestions');
         const talkDateInput = document.getElementById('TalkDate'); 
+        const talkDateHint = document.getElementById('talkDateHint'); // Get the hint text
         const extraField = document.getElementById('extra_field'); // Honeypot field
 
         // Theme Toggle Elements
@@ -215,6 +217,20 @@
         let allSongs = []; 
         let activeSongSuggestionIndex = -1; 
 
+        // Feature detection for input type="date" native picker
+        function supportsDateInputPicker() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'date');
+            // A browser supports the picker if it doesn't revert the type to 'text'
+            // and it handles an invalid date correctly.
+            // Modern browsers will keep type as 'date'.
+            // Some older browsers might keep type as 'date' but not show picker,
+            // so checking valueAsDate is more robust.
+            // If valueAsDate is null for an invalid date, it indicates native parsing.
+            input.value = 'not-a-date'; 
+            return input.type === 'date' && input.valueAsDate === null;
+        }
+
         // Theme Management Functions
         function applyTheme(theme) {
             if (theme === 'dark') {
@@ -227,19 +243,31 @@
             localStorage.setItem('theme', theme); // Save preference
         }
 
-        // On page load, apply saved theme or default to light
+        // On page load, apply saved theme, set date input behavior, and fetch data
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
                 applyTheme(savedTheme);
             } else {
-                // Check system preference if no theme is saved (optional, but good UX)
                 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     applyTheme('dark');
                 } else {
                     applyTheme('light'); 
                 }
             }
+
+            // Apply readonly if native date picker is supported
+            if (supportsDateInputPicker()) {
+                talkDateInput.setAttribute('readonly', 'readonly');
+                // You could also refine the hint text here if needed, e.g.,
+                // talkDateHint.textContent = "Click the calendar icon to select a date.";
+            } else {
+                // If native picker is NOT supported, allow typing and potentially adjust hint
+                talkDateInput.removeAttribute('readonly');
+                talkDateInput.placeholder = "YYYY-MM-DD"; // Suggest format for manual entry
+                talkDateHint.textContent = "Enter date manually (YYYY-MM-DD) or use calendar if available.";
+            }
+
 
             // Fetch themes and songs
             fetchThemesJsonp();
