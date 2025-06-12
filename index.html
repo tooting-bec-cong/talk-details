@@ -243,7 +243,7 @@
                 // Tailwind's 'md' breakpoint is 768px.
                 const isMobile = window.matchMedia('(max-width: 767px)').matches; 
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches; // Check for system light preference
 
                 if (isMobile) {
                     // On mobile, default to dark. System light preference overrides.
@@ -375,7 +375,7 @@
         });
 
         themeInput.addEventListener('keydown', (e) => {
-            const items = themeSuggestionsDiv.querySelectorAll('.autocomplete-suggestion-item');
+            const items = songSuggestionsDiv.querySelectorAll('.autocomplete-suggestion-item');
             if (items.length === 0) return;
 
             if (e.key === 'ArrowDown') {
