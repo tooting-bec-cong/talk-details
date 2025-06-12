@@ -234,13 +234,31 @@
         // On page load, apply saved theme or default to light
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme');
+
             if (savedTheme) {
+                // If a theme is explicitly saved by the user, always apply it.
                 applyTheme(savedTheme);
             } else {
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    applyTheme('dark');
+                // No saved preference, determine default based on screen size and system preference
+                // Tailwind's 'md' breakpoint is 768px.
+                const isMobile = window.matchMedia('(max-width: 767px)').matches; 
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+
+                if (isMobile) {
+                    // On mobile, default to dark. System light preference overrides.
+                    if (prefersLight) {
+                        applyTheme('light'); 
+                    } else {
+                        applyTheme('dark'); 
+                    }
                 } else {
-                    applyTheme('light'); 
+                    // On larger screens, default to light. System dark preference overrides.
+                    if (prefersDark) {
+                        applyTheme('dark'); 
+                    } else {
+                        applyTheme('light'); 
+                    }
                 }
             }
 
