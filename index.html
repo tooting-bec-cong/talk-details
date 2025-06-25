@@ -213,7 +213,7 @@
         const htmlElement = document.documentElement; // Represents the <html> tag
 
         // IMPORTANT: Replace this with your CURRENT Apps Script Web App URL
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_D6I1_rn39Sk0dMdbdBfacwuPl7W-vB8X8NNdpucnlbnVwMGhSQx2dbBselVGZlKEXg/exec'; 
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_D6I1_rn39Sk0dMdbdBfacwuPl7W-vB8X8NNdpucnlbnVwMGhSQx2dbBselVGZlKEXg/exec';  
 
         let allThemes = []; 
         let activeThemeSuggestionIndex = -1; 
@@ -225,7 +225,7 @@
             if (theme === 'dark') {
                 htmlElement.classList.add('dark');
                 themeToggle.checked = true;
-            } else {
+            } else {  
                 htmlElement.classList.remove('dark');
                 themeToggle.checked = false;
             }
