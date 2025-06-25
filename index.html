@@ -283,7 +283,7 @@
             }
         };
 
-        // Function to fetch themes using JSONP
+        // Function to fetch themes using JSONP 
         function fetchThemesJsonp() {
             const script = document.createElement('script');
             script.src = `${WEB_APP_URL}?callback=handleThemesResponse&targetSheet=Themes&_=${new Date().getTime()}`;
